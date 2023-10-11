@@ -4,33 +4,35 @@ import math
 class Vision():
 
     def __init__(self) -> None:
-        self.CaptureImage()
-        self.image = cv2.imread('sample.png')#cv2.imread("check.jpg")
+        #self.image #= cv2.imread('sample.png')#cv2.imread("check.jpg")
         self.colorList = [(255,0,0),(0,255,0),(0,0,255),(0,255,255)]
-        self.FindBase()
+        # self.FindBase()
 
 
-    def CaptureImage(self):
+    def Display(self):
         cap = cv2.VideoCapture(0)
-        if not cap.isOpened():
-            print("Error: Camera not found.")
-        else:
+        while cap.isOpened():
+
             # Read a single frame from the camera
             ret, frame = cap.read()
 
             if ret:
                 # Save the captured frame as an image file (e.g., 'captured_image.jpg')
-                cv2.imwrite('sample.png', frame)
-
-            # Release the VideoCapture object
-            cap.release()
-
+                self.FindBase(frame)
+            else:
+            # If there are no more frames to read, break the loop
+                break
+            # Press 'q' to close the video
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                break
         #Close all OpenCV windows
+        # Release the VideoCapture object
+        cap.release()
         cv2.destroyAllWindows()
 
-    def GetContours(self):
+    def GetContours(self,image):
         # Convert the image to grayscale
-        gray_image = cv2.cvtColor(self.image, cv2.COLOR_BGR2GRAY)
+        gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
         # # Apply Gaussian blur to reduce noise and improve contour detection
         blurred_image = cv2.GaussianBlur(gray_image, (3, 3), 0)
@@ -50,9 +52,9 @@ class Vision():
             return center
         return (-100,- 100)
 
-    def FindBase(self):
-        contours = self.GetContours()
-        height, width, _ = self.image.shape
+    def FindBase(self,image):
+        contours = self.GetContours(image)
+        height, width, _ = image.shape
         originPoint = (999,999)
         diagLen = 0
         base = []
@@ -90,10 +92,10 @@ class Vision():
                         base = points
         i = 0
         for point in base:
-            cv2.circle(self.image, point, 5, self.colorList[i], 2)
+            cv2.circle(image, point, 5, self.colorList[i], 2)
             i += 1
                     
-        cv2.imshow("awe", self.image)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
+        cv2.imshow("awe", image)
+        # cv2.waitKey(0)
+        # cv2.destroyAllWindows()
         

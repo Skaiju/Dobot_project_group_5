@@ -7,6 +7,7 @@ from vision import Vision
 
 # create camera object
 cam = Vision()
+cam.Display()
 
 # image 0ffset
 OffsetX, OffsetY = 0, 0
