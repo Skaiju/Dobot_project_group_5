@@ -1,19 +1,27 @@
 import cv2
-
-import DoBotArm as dbt
-import time
 from serial.tools import list_ports
 from vision import Vision
+from arm import Arm
+clearHeight = 100
+shapeHeight = 20
+conveyorHeight = 50
+originX = -70
+originY = 50
+baseWidth = 150
+homeX, homeY, homeZ = originX, originY, clearHeight
 
 # create camera object
-UI = Vision()
-
+UI = Vision(baseWidth)
+# arm = Arm(homeX, homeY, homeZ, "COM3")
 cap = cv2.VideoCapture(0)
 
 while cap.isOpened():
 
     UI.Display(cap)
 
+    if UI.GetMouseState() == True:
+        print("arm moving to ", UI.GetMousePos())
+        UI.SetMouseState(False)
 
 
 
@@ -25,30 +33,3 @@ while cap.isOpened():
 
 cap.release()
 cv2.destroyAllWindows()  
-
-# image 0ffset
-OffsetX, OffsetY = 0, 0
-
-# arm home position
-homeX, homeY, homeZ = 170, 0, 0
-
-
-# Initialize camera settings
-# cam.CaptureImage()
-
-
-
-# ctrlDobot = dbt.DoBotArm("COM3", homeX, homeY, homeZ, home= False)
-# print("starting")
-# ctrlDobot.moveArmXYZ(x= 170, y= 50, z= 0)
-# ctrlDobot.moveArmXYZ(x= 170, y= 0, z= 0)
-
-
-# ctrlDobot.moveArmRelXYZ(0,0,30)
-# ctrlDobot.moveArmXYZ(x= 170, y= 0, z= 0)
-
-# ctrlDobot.toggleSuction()
-# time.sleep(10)
-# ctrlDobot.toggleSuction()
-
-# # def SetConveyor(self, enabled, speed = 15000):
