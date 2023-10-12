@@ -54,8 +54,7 @@ class Vision():
             return center
         return (-100,- 100)
 
-    def FindBase(self,image):
-        contours = self.GetContours(image)
+    def FindBase(self,image,contours):
         height, width, _ = image.shape
         originPoint = (999,999)
         diagLen = 0
@@ -147,10 +146,10 @@ class Vision():
 
         # Read a single frame from the camera
         ret, frame = cap.read()
-
+        contours = self.GetContours(frame)
         # run once
         if not self.setup:
-            self.FindBase(frame)
+            self.FindBase(frame, contours)
             self.Calibrate()
             self.setup = True
 
