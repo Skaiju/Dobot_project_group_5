@@ -9,11 +9,20 @@ class Vision():
         self.colorList = [(255,0,0),(0,255,0),(0,0,255),(0,255,255)]
         self.mouseActive = False
         self.mousePos = (0,0)
-        self.localMousePos = (0,0)
+        self.ocalMousePos = (0,0)
         self.origin = (0,0)
         self.baseWidth = 150
         self.distPixelRatio = 1
         self.base = []
+
+    def GetMouseState(self):
+        return self.mouseActive
+    
+    def SetMouseState(self, state: bool):
+        self.mouseActive = state
+    
+    def GetMousePos(self):
+        return self.__localMousePos
 
     def GetContours(self,image):
         # Convert the image to grayscale
@@ -30,7 +39,7 @@ class Vision():
         edges = cv2.Canny(blurred_image, t_lower, t_upper, 
                           apertureSize = aperture_size,  
                             L2gradient = L2Gradient)  
-        cv2.imshow("Edges", edges)
+        # cv2.imshow("Edges", edges)
         contours, _ = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         return contours
 
@@ -132,18 +141,18 @@ class Vision():
 
     def Display(self):
         cap = cv2.VideoCapture(0)
-        firstLoop = False
+        setup = False
         while cap.isOpened():
 
             # Read a single frame from the camera
             ret, frame = cap.read()
 
             # run once
-            if not firstLoop:
+            if not setup:
 
                 self.FindBase(frame)
                 self.Calibrate()
-                firstLoop = True
+                setup = True
 
             # run continous
             self.DisplayBase(frame)
