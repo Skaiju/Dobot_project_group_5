@@ -1,44 +1,35 @@
 import cv2
 import math
+from shape import Shape
 
 class Vision():
 
     def __init__(self) -> None:
         #self.image #= cv2.imread('sample.png')#cv2.imread("check.jpg")
         self.colorList = [(255,0,0),(0,255,0),(0,0,255),(0,255,255)]
-        # self.FindBase()
-
-
-    def Display(self):
-        cap = cv2.VideoCapture(0)
-        while cap.isOpened():
-
-            # Read a single frame from the camera
-            ret, frame = cap.read()
-
-            if ret:
-                # Save the captured frame as an image file (e.g., 'captured_image.jpg')
-                self.FindBase(frame)
-            else:
-            # If there are no more frames to read, break the loop
-                break
-            # Press 'q' to close the video
-            if cv2.waitKey(1) & 0xFF == ord('q'):
-                break
-        #Close all OpenCV windows
-        # Release the VideoCapture object
-        cap.release()
-        cv2.destroyAllWindows()
+        self.mousePos = (0,0)
+        self.localMousePos = (0,0)
+        self.origin = (0,0)
+        self.baseWidth = 150
+        self.distPixelRatio = 1
+        self.base = []
 
     def GetContours(self,image):
         # Convert the image to grayscale
         gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
         # # Apply Gaussian blur to reduce noise and improve contour detection
-        blurred_image = cv2.GaussianBlur(gray_image, (3, 3), 0)
+        blurred_image = cv2.GaussianBlur(gray_image, (5, 5), 0)
         # Apply Canny edge detection
-        edges = cv2.Canny(blurred_image, 250, 300)  # You can adjust the threshold values
-
+        # edges = cv2.Canny(blurred_image, 250, 300)  # You can adjust the threshold values
+        t_lower = 100
+        t_upper = 200
+        aperture_size = 5 # Aperture size 
+        L2Gradient = True # Boolean 
+        edges = cv2.Canny(blurred_image, t_lower, t_upper, 
+                          apertureSize = aperture_size,  
+                            L2gradient = L2Gradient)  
+        cv2.imshow("Edges", edges)
         contours, _ = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         return contours
 
@@ -57,7 +48,6 @@ class Vision():
         height, width, _ = image.shape
         originPoint = (999,999)
         diagLen = 0
-        base = []
         for contour in contours:
             center = self.FindCenter(contour)
             # Approximate the contour to a polygon with fewer vertices
@@ -89,13 +79,75 @@ class Vision():
                     _diagLen = math.sqrt(w**2 + h**2)
                     if  _diagLen > diagLen:
                         diagLen = _diagLen
-                        base = points
-        i = 0
-        for point in base:
-            cv2.circle(image, point, 5, self.colorList[i], 2)
-            i += 1
-                    
-        cv2.imshow("awe", image)
-        # cv2.waitKey(0)
-        # cv2.destroyAllWindows()
-        
+                        self.base = points
+                        self.origin = points[2]
+
+    def Calibrate(self):
+        basePixelWidth = self.base[3][0] - self.base[2][0]
+        self.distPixelRatio = self.baseWidth/basePixelWidth
+
+    def ConvertToLocalMil(self, pixel):
+        localPixel = (pixel[0] - self.origin[0], pixel[1] - self.origin[1])
+        xMill = int(self.distPixelRatio * localPixel[0])
+        yMill = int(self.distPixelRatio * localPixel[1])
+        localMillPos = (xMill, yMill)
+
+        return localMillPos
+
+    def displayText(self,image, name, pos):
+        font = cv2.FONT_HERSHEY_SIMPLEX
+        scale = 0.4
+        color = (255,255,0)
+        cv2.putText(image,"  " + name, pos, font, scale, color)
+
+    def DisplayBase(self,image):
+        for i in range(4):
+            color = self.colorList[i]
+            if i < 3:
+                cv2.line(image, self.base[i], self.base[i+1], color, 2)
+            else:
+                cv2.line(image, self.base[i], self.base[0], color, 2)
+        cv2.circle(image,self.origin,5,(255,255,0),2)
+        name = "(0,0)"
+        self.displayText(image, name, self.origin)
+
+    def MouseClick(self, event, x, y, flags, param): 
+        if event == cv2.EVENT_LBUTTONDOWN: 
+            self.mousePos = (x,y)
+
+    def DisplayMouseClick(self, image):
+        cv2.circle(image,self.mousePos,10,(255,255,0),2)
+        name = str(self.ConvertToLocalMil(self.mousePos))
+        self.displayText(image,name,self.mousePos)
+
+    def Display(self):
+        cap = cv2.VideoCapture(0)
+        firstLoop = False
+        while cap.isOpened():
+
+            # Read a single frame from the camera
+            ret, frame = cap.read()
+
+            # run once
+            if not firstLoop:
+
+                self.FindBase(frame)
+                self.Calibrate()
+                firstLoop = True
+
+            # run continous
+            self.DisplayBase(frame)
+            self.DisplayMouseClick(frame)
+
+
+            cv2.imshow("Main", frame)
+
+            cv2.setMouseCallback('Main', self.MouseClick, param=frame)
+
+            # Press 'q' to close the video
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                break
+        #Close all OpenCV windows
+        # Release the VideoCapture object
+        cap.release()
+        cv2.destroyAllWindows()  
