@@ -7,6 +7,7 @@ class Vision():
     def __init__(self) -> None:
         #self.image #= cv2.imread('sample.png')#cv2.imread("check.jpg")
         self.colorList = [(255,0,0),(0,255,0),(0,0,255),(0,255,255)]
+        self.mouseActive = False
         self.mousePos = (0,0)
         self.localMousePos = (0,0)
         self.origin = (0,0)
@@ -100,7 +101,7 @@ class Vision():
         color = (255,255,0)
         cv2.putText(image,"  " + name, pos, font, scale, color)
 
-    def DisplayBase(self,image):
+    def DisplayBase(self, image):
         for i in range(4):
             color = self.colorList[i]
             if i < 3:
@@ -111,14 +112,23 @@ class Vision():
         name = "(0,0)"
         self.displayText(image, name, self.origin)
 
+    def CheckBounds(self, point, boundary):
+        if point[0] > boundary[2][0] and point[0] < boundary[0][0]:
+            if point[1] > boundary[2][1] and point[1] < boundary[0][1]:
+                return True
+        return False
+
     def MouseClick(self, event, x, y, flags, param): 
         if event == cv2.EVENT_LBUTTONDOWN: 
-            self.mousePos = (x,y)
+            if self.CheckBounds((x,y), self.base):
+                self.mousePos = (x,y)
+                self.mouseActive = True
 
     def DisplayMouseClick(self, image):
-        cv2.circle(image,self.mousePos,10,(255,255,0),2)
-        name = str(self.ConvertToLocalMil(self.mousePos))
-        self.displayText(image,name,self.mousePos)
+        if self.mouseActive:
+            cv2.circle(image,self.mousePos,10,(255,255,0),2)
+            name = str(self.ConvertToLocalMil(self.mousePos))
+            self.displayText(image,name,self.mousePos)
 
     def Display(self):
         cap = cv2.VideoCapture(0)
