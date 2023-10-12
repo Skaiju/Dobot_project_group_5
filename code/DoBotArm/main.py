@@ -6,10 +6,25 @@ from serial.tools import list_ports
 from vision import Vision
 
 # create camera object
-cam = Vision()
-cam.Display()
+UI = Vision()
+
+cap = cv2.VideoCapture(0)
+
+while cap.isOpened():
+
+    UI.Display(cap)
 
 
+
+
+
+
+
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+        break
+
+cap.release()
+cv2.destroyAllWindows()  
 
 # image 0ffset
 OffsetX, OffsetY = 0, 0

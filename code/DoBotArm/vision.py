@@ -14,6 +14,7 @@ class Vision():
         self.baseWidth = 150
         self.distPixelRatio = 1
         self.base = []
+        self.setup = False
 
     def GetMouseState(self):
         return self.mouseActive
@@ -139,34 +140,31 @@ class Vision():
             name = str(self.ConvertToLocalMil(self.mousePos))
             self.displayText(image,name,self.mousePos)
 
-    def Display(self):
-        cap = cv2.VideoCapture(0)
-        setup = False
-        while cap.isOpened():
-
-            # Read a single frame from the camera
-            ret, frame = cap.read()
-
-            # run once
-            if not setup:
-
-                self.FindBase(frame)
-                self.Calibrate()
-                setup = True
-
-            # run continous
-            self.DisplayBase(frame)
-            self.DisplayMouseClick(frame)
+    def Display(self,cap):
+        # cap = cv2.VideoCapture(0)
 
 
-            cv2.imshow("Main", frame)
+        # Read a single frame from the camera
+        ret, frame = cap.read()
 
-            cv2.setMouseCallback('Main', self.MouseClick, param=frame)
+        # run once
+        if not self.setup:
 
-            # Press 'q' to close the video
-            if cv2.waitKey(1) & 0xFF == ord('q'):
-                break
+            self.FindBase(frame)
+            self.Calibrate()
+            self.setup = True
+
+        # run continous
+        self.DisplayBase(frame)
+        self.DisplayMouseClick(frame)
+
+
+        cv2.imshow("Main", frame)
+
+        cv2.setMouseCallback('Main', self.MouseClick, param=frame)
+
         #Close all OpenCV windows
         # Release the VideoCapture object
-        cap.release()
-        cv2.destroyAllWindows()  
+        # cv2.waitKey(0)
+        # cap.release()
+        # cv2.destroyAllWindows()  
