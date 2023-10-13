@@ -1,7 +1,7 @@
 import cv2
 import math
 from shape import Shape
-
+import time
 class Vision():
 
     def __init__(self, baseWidth):
@@ -30,9 +30,8 @@ class Vision():
         gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
         # # Apply Gaussian blur to reduce noise and improve contour detection
-        blurred_image = cv2.GaussianBlur(gray_image, (5, 5), 0)
+        blurred_image = cv2.GaussianBlur(gray_image, (9, 9), 0)
         # Apply Canny edge detection
-        # edges = cv2.Canny(blurred_image, 250, 300)  # You can adjust the threshold values
         t_lower = 100
         t_upper = 200
         aperture_size = 5 # Aperture size 
@@ -90,7 +89,22 @@ class Vision():
                     if  _diagLen > diagLen:
                         diagLen = _diagLen
                         self.base = points
-                        self.origin = points[0]
+                        self.origin = points[3]
+
+    def CropFrame(self,image):
+        croppedImage = image[self.base[2][1]+5:self.base[0][1]+5, self.base[2][0]-5:self.base[0][0]-5]
+        cv2.imshow("Cropped", croppedImage)
+        return croppedImage
+
+    def FindShapes(self,image,contours):
+        for contour in contours:
+            center = self.FindCenter(contour)
+            if self.CheckBounds(center,self.base):
+                # Approximate the contour to a polygon with fewer vertices
+                epsilon = 0.04 * cv2.arcLength(contour, True)
+                approx = cv2.approxPolyDP(contour, epsilon, True)
+                if len(approx) > 2:
+                    cv2.circle(image,center,5,(0,0,255),2)
 
     def Calibrate(self):
         basePixelWidth = self.base[3][0] - self.base[2][0]
@@ -104,7 +118,7 @@ class Vision():
 
         return localMillPos
 
-    def displayText(self,image, name, pos):
+    def DisplayText(self,image, name, pos):
         font = cv2.FONT_HERSHEY_SIMPLEX
         scale = 0.4
         color = (255,255,0)
@@ -119,7 +133,7 @@ class Vision():
                 cv2.line(image, self.base[i], self.base[0], color, 2)
         cv2.circle(image,self.origin,5,(255,255,0),2)
         name = "(0,0)"
-        self.displayText(image, name, self.origin)
+        self.DisplayText(image, name, self.origin)
 
     def CheckBounds(self, point, boundary):
         if point[0] > boundary[2][0] and point[0] < boundary[0][0]:
@@ -138,7 +152,7 @@ class Vision():
         if self.mouseActive:
             cv2.circle(image,self.mousePos,10,(255,255,0),2)
             name = str(self.localMousePos)
-            self.displayText(image,name,self.mousePos)
+            self.DisplayText(image,name,self.mousePos)
 
     def Display(self,cap):
         # cap = cv2.VideoCapture(0)
@@ -146,19 +160,22 @@ class Vision():
 
         # Read a single frame from the camera
         ret, frame = cap.read()
-        contours = self.GetContours(frame)
         # run once
         if not self.setup:
+            contours = self.GetContours(frame)
             self.FindBase(frame, contours)
             self.Calibrate()
             self.setup = True
 
         # run continous
+        # croppedFrame = self.CropFrame(frame)
+        # contours = self.GetContours(frame)
+        # self.FindShapes(frame, contours)
         self.DisplayBase(frame)
         self.DisplayMouseClick(frame)
 
 
         cv2.imshow("Main", frame)
-
         cv2.setMouseCallback('Main', self.MouseClick, param=frame)
+        # time.sleep(0.5)
 

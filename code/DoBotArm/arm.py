@@ -6,19 +6,15 @@ import threading
 
 class Arm():
 
-    def __init__(self, homeX = 50, homeY = -70, homeZ = 50, port = "COM3"):
-        self.homeX = homeX
-        self.homeY = homeY
-        self.homeZ = homeZ
-        self.port = port # "COM3"
-        self.arm = dbt.DoBotArm(port, homeX, homeY, homeZ, home= False)
+    def __init__(self, homeX = 50, homeY = -70, homeZ = 50, port = "COM8"):
 
-    def Connect(self):
+        self.arm = dbt.DoBotArm(port, homeX, homeY, homeZ, home= False)
         connected = self.arm.dobotConnect(False)
         return connected
 
+
     def MoveLocal(self,pos):
-        self.arm.moveArmRelXY(pos[1],pos[0])
+        self.arm.moveArmRelXY(pos[1], pos[0])
 
     def PickUp(self, objHeight, surfHeight, clearHeight):
         cPos = self.arm.getPosition()
@@ -29,9 +25,16 @@ class Arm():
         self.arm.moveArmXYZ(0, 0, clearHeight)
         time.sleep(1.0)
     
-    def MoveTo(self, globalPos):
-        self.arm.moveArmXY(globalPos[1], globalPos[0])
-        time.sleep(1.0)
+    def MoveXYZ(self, globalPosX, globalPosY, globalPosZ):
+        self.arm.moveArmXYZ(globalPosX, globalPosY, globalPosZ)
+
+    def MoveZ(self, globalPosZ):
+        self.arm.moveArmRelZ(globalPosZ)
+
+
+    def MoveXY(self,globalPosX, globalPosY):
+        self.arm.moveArmXY(globalPosX,globalPosY)
+
     
     def Drop(self,objHeight, surfHeight, clearHeight):   
         cPos = self.arm.getPosition()
