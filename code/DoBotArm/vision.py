@@ -14,6 +14,7 @@ class Vision():
         self.baseWidth = baseWidth
         self.distPixelRatio = 1
         self.base = []
+        self.shapePositions = []
         self.setup = False
 
     def GetMouseState(self):
@@ -148,11 +149,30 @@ class Vision():
                 self.localMousePos = self.ConvertToLocalMil(self.mousePos)
                 self.mouseActive = True
 
+    def AddShapePos(self, pos):
+        self.shapePositions.append(pos)
+
+    def GetShapePositions(self):
+        return self.shapePositions
+    
+    def ClearShapePositions(self):
+        self.shapePositions = []
+
     def DisplayMouseClick(self, image):
         if self.mouseActive:
             cv2.circle(image,self.mousePos,10,(255,255,0),2)
             name = str(self.localMousePos)
             self.DisplayText(image,name,self.mousePos)
+
+    def DisplayStartButton(self, image):
+        rectPos1 = (self.origin[0] - 50, self.origin[1])
+        rectPos2 = (self.origin[0], self.origin[1] + 15)
+
+        cv2.rectangle(image,rectPos1, rectPos2, (255,255,0), 2)
+
+        textPos = (self.origin[0] - 55, self.origin[1] + 12)
+
+        self.DisplayText(image,"START", textPos)
 
     def Display(self,cap):
         # cap = cv2.VideoCapture(0)
@@ -173,6 +193,7 @@ class Vision():
         # self.FindShapes(frame, contours)
         self.DisplayBase(frame)
         self.DisplayMouseClick(frame)
+        self.DisplayStartButton(frame)
 
 
         cv2.imshow("Main", frame)
