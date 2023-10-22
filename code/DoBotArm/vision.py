@@ -160,7 +160,7 @@ class Vision():
 
     def DisplayMouseClick(self, image):
         if self.mouseActive:
-            cv2.circle(image,self.mousePos,10,(255,255,0),2)
+            cv2.circle(image, self.mousePos, 7, (255,255,0), 2)
             name = str(self.localMousePos)
             self.DisplayText(image,name,self.mousePos)
 
@@ -174,9 +174,12 @@ class Vision():
 
         self.DisplayText(image,"START", textPos)
 
-    def Display(self,cap):
-        # cap = cv2.VideoCapture(0)
+    def DisplayShapePositions(self, image):
+        if len(self.shapePositions) < 0:
+            for pos in self.shapePositions:
+                cv2.circle(image, pos, 7, (255,255,0), 2)
 
+    def Display(self,cap):
 
         # Read a single frame from the camera
         ret, frame = cap.read()
@@ -187,13 +190,10 @@ class Vision():
             self.Calibrate()
             self.setup = True
 
-        # run continous
-        # croppedFrame = self.CropFrame(frame)
-        # contours = self.GetContours(frame)
-        # self.FindShapes(frame, contours)
         self.DisplayBase(frame)
         self.DisplayMouseClick(frame)
         self.DisplayStartButton(frame)
+        self.DisplayShapePositions(frame)
 
 
         cv2.imshow("Main", frame)
